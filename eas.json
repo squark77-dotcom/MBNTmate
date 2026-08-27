@@ -25,9 +25,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "flight7700@icloud.com",
+        "ascAppId": "6801451892",
+        "appleTeamId": "KB3DDR2E3C"
       }
     }
   }

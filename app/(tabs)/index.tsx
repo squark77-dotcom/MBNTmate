@@ -159,7 +159,10 @@ interface ResultCardProps {
   dutyMinutes: number | null;
 }
 
+const CSM_QAL_RATE = 30.38;
+
 function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
+  const [csmQalChecked, setCsmQalChecked] = useState(false);
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -218,6 +221,24 @@ function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
             {mbntStr}
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.rateRow}
+          onPress={() => setCsmQalChecked((prev) => !prev)}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={csmQalChecked ? "checkbox" : "square-outline"}
+            size={20}
+            color={GOLD}
+          />
+          <Text style={styles.rateLabel}>CSM QAL</Text>
+          {csmQalChecked && (
+            <Text style={styles.rateValue}>
+              ${((mbntMinutes / 60) * CSM_QAL_RATE).toFixed(2)}
+            </Text>
+          )}
+        </TouchableOpacity>
 
         {!isPositive && (
           <View style={styles.warningRow}>
@@ -725,6 +746,25 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     gap: 12,
   },
+  rateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 8,
+    paddingTop: 16,
+    gap: 10,
+  },
+  rateLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    color: WHITE,
+    letterSpacing: 1,
+  },
+  rateValue: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: GOLD,
+    marginLeft: "auto",
+  },
   mbntLabel: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
@@ -737,7 +777,7 @@ const styles = StyleSheet.create({
     color: WHITE,
   },
   mbntValue: {
-    fontSize: 48,
+    fontSize: 36,
     fontFamily: "Inter_700Bold",
     color: GOLD,
     letterSpacing: 2,

@@ -19,7 +19,8 @@
       "buildNumber": "2",
       "infoPlist": {
         "NSCalendarsUsageDescription": "MBNT Calculator needs access to your calendar to add duty time events.",
-        "NSCalendarsFullAccessUsageDescription": "MBNT Calculator needs access to your calendar to add duty time events."
+        "NSCalendarsFullAccessUsageDescription": "MBNT Calculator needs access to your calendar to add duty time events.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,7 +31,10 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "permissions": ["android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"]
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -49,6 +53,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "aae9e826-e89d-4067-881b-371176d07053"
+      }
     }
   }
 }
