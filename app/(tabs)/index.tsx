@@ -160,9 +160,11 @@ interface ResultCardProps {
 }
 
 const CSM_QAL_RATE = 30.38;
+const FA_QAL_RATE = 21.63;
 
 function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
   const [csmQalChecked, setCsmQalChecked] = useState(false);
+  const [faQalChecked, setFaQalChecked] = useState(false);
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -236,6 +238,24 @@ function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
           {csmQalChecked && (
             <Text style={styles.rateValue}>
               ${((mbntMinutes / 60) * CSM_QAL_RATE).toFixed(2)}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.rateRow}
+          onPress={() => setFaQalChecked((prev) => !prev)}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={faQalChecked ? "checkbox" : "square-outline"}
+            size={20}
+            color={GOLD}
+          />
+          <Text style={styles.rateLabel}>FA QAL</Text>
+          {faQalChecked && (
+            <Text style={styles.rateValue}>
+              ${((mbntMinutes / 60) * FA_QAL_RATE).toFixed(2)}
             </Text>
           )}
         </TouchableOpacity>
