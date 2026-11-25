@@ -2,7 +2,7 @@
   "expo": {
     "name": "MBNTmate by Jetlogix",
     "slug": "mbnt-calculator",
-    "version": "1.0.2",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mbntcalculator",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jetlogix.mbntmate",
-      "buildNumber": "2",
+      "buildNumber": "8",
       "infoPlist": {
         "NSCalendarsUsageDescription": "MBNT Calculator needs access to your calendar to add duty time events.",
         "NSCalendarsFullAccessUsageDescription": "MBNT Calculator needs access to your calendar to add duty time events.",

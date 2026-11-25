@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Calendar from "expo-calendar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -157,14 +158,32 @@ function TimeCard({
 interface ResultCardProps {
   mbntMinutes: number | null;
   dutyMinutes: number | null;
+  csmQalChecked: boolean;
+  faQalChecked: boolean;
+  onToggleCsmQal: () => void;
+  onToggleFaQal: () => void;
+  csmQdChecked: boolean;
+  faQdChecked: boolean;
+  onToggleCsmQd: () => void;
+  onToggleFaQd: () => void;
+  workGroup: WorkGroup | null;
 }
 
 const CSM_QAL_RATE = 30.38;
 const FA_QAL_RATE = 21.63;
+const CSM_QD_RATE = 23.12;
+const FA_QD_RATE = 14.86;
 
-function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
-  const [csmQalChecked, setCsmQalChecked] = useState(false);
-  const [faQalChecked, setFaQalChecked] = useState(false);
+const WORK_GROUP_KEY = "mbntmate_work_group";
+type WorkGroup = "CSM_QAL" | "CSM_QD" | "FA_QAL" | "FA_QD";
+const WORK_GROUPS: { key: WorkGroup; label: string }[] = [
+  { key: "CSM_QAL", label: "CSM QAL" },
+  { key: "CSM_QD", label: "CSM QD" },
+  { key: "FA_QAL", label: "FA QAL" },
+  { key: "FA_QD", label: "FA QD" },
+];
+
+function ResultCard({ mbntMinutes, dutyMinutes, csmQalChecked, faQalChecked, onToggleCsmQal, onToggleFaQal, csmQdChecked, faQdChecked, onToggleCsmQd, onToggleFaQd, workGroup }: ResultCardProps) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -224,9 +243,10 @@ function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
           </Text>
         </View>
 
+        {workGroup === "CSM_QAL" && (
         <TouchableOpacity
           style={styles.rateRow}
-          onPress={() => setCsmQalChecked((prev) => !prev)}
+          onPress={onToggleCsmQal}
           activeOpacity={0.7}
         >
           <Ionicons
@@ -241,10 +261,12 @@ function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
             </Text>
           )}
         </TouchableOpacity>
+        )}
 
+        {workGroup === "FA_QAL" && (
         <TouchableOpacity
           style={styles.rateRow}
-          onPress={() => setFaQalChecked((prev) => !prev)}
+          onPress={onToggleFaQal}
           activeOpacity={0.7}
         >
           <Ionicons
@@ -259,6 +281,49 @@ function ResultCard({ mbntMinutes, dutyMinutes }: ResultCardProps) {
             </Text>
           )}
         </TouchableOpacity>
+        )}
+
+        {workGroup === "CSM_QD" && (
+        <TouchableOpacity
+          style={styles.rateRow}
+          onPress={onToggleCsmQd}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={csmQdChecked ? "checkbox" : "square-outline"}
+            size={20}
+            color={GOLD}
+          />
+          <Text style={styles.rateLabel}>CSM QD</Text>
+          {csmQdChecked && (
+            <Text style={styles.rateValue}>
+              ${((mbntMinutes / 60) * CSM_QD_RATE).toFixed(2)}
+            </Text>
+          )}
+        </TouchableOpacity>
+        )}
+
+        {workGroup === "FA_QD" && (
+        <TouchableOpacity
+          style={styles.rateRow}
+          onPress={onToggleFaQd}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={faQdChecked ? "checkbox" : "square-outline"}
+            size={20}
+            color={GOLD}
+          />
+          <Text style={styles.rateLabel}>FA QD</Text>
+          {faQdChecked && (
+            <Text style={styles.rateValue}>
+              ${((mbntMinutes / 60) * FA_QD_RATE).toFixed(2)}
+            </Text>
+          )}
+        </TouchableOpacity>
+        )}
+
+        <Text style={styles.rateDisclaimer}>Rates vary by years of service — indicative only</Text>
 
         {!isPositive && (
           <View style={styles.warningRow}>
@@ -312,6 +377,63 @@ function CalendarButton({ onPress, isLoading, disabled }: CalendarButtonProps) {
   );
 }
 
+function WorkGroupPicker({ onSelect }: { onSelect: (g: WorkGroup) => void }) {
+  return (
+    <View style={pickerStyles.container}>
+      <Text style={pickerStyles.title}>SELECT YOUR WORK GROUP</Text>
+      <Text style={pickerStyles.subtitle}>You can change this later.</Text>
+      {WORK_GROUPS.map((g) => (
+        <TouchableOpacity
+          key={g.key}
+          style={pickerStyles.option}
+          onPress={() => onSelect(g.key)}
+          activeOpacity={0.7}
+        >
+          <Text style={pickerStyles.optionText}>{g.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+const pickerStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: NAVY_DEEP,
+    justifyContent: "center",
+    padding: 24,
+  },
+  title: {
+    color: WHITE,
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  subtitle: {
+    color: SECONDARY,
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 32,
+  },
+  option: {
+    backgroundColor: NAVY_CARD,
+    borderWidth: 1,
+    borderColor: NAVY_BORDER,
+    borderRadius: 12,
+    paddingVertical: 18,
+    marginBottom: 14,
+    alignItems: "center",
+  },
+  optionText: {
+    color: GOLD,
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+});
+
 export default function DutyCalculator() {
   const insets = useSafeAreaInsets();
 
@@ -320,6 +442,26 @@ export default function DutyCalculator() {
   const [endHH, setEndHH] = useState("");
   const [endMM, setEndMM] = useState("");
   const [calLoading, setCalLoading] = useState(false);
+  const [workGroup, setWorkGroup] = useState<WorkGroup | null>(null);
+  const [workGroupLoaded, setWorkGroupLoaded] = useState(false);
+
+  React.useEffect(() => {
+    AsyncStorage.getItem(WORK_GROUP_KEY).then((stored) => {
+      if (stored) setWorkGroup(stored as WorkGroup);
+      setWorkGroupLoaded(true);
+    });
+  }, []);
+
+  const handleSelectWorkGroup = useCallback((g: WorkGroup) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    AsyncStorage.setItem(WORK_GROUP_KEY, g);
+    setWorkGroup(g);
+  }, []);
+
+  const handleChangeWorkGroup = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setWorkGroup(null);
+  }, []);
 
   const startHHRef = useRef<TextInput>(null);
   const startMMRef = useRef<TextInput>(null);
@@ -347,6 +489,11 @@ export default function DutyCalculator() {
     setEndHH("");
     setEndMM("");
   }, []);
+
+  const [csmQalChecked, setCsmQalChecked] = useState(false);
+  const [faQalChecked, setFaQalChecked] = useState(false);
+  const [csmQdChecked, setCsmQdChecked] = useState(false);
+  const [faQdChecked, setFaQdChecked] = useState(false);
 
   const handleAddToCalendar = useCallback(async () => {
     if (startMinutes === null || endMinutes === null || mbntMinutes === null) return;
@@ -391,11 +538,30 @@ export default function DutyCalculator() {
       const mbntStr = formatDuration(mbntMinutes);
       const dutyStr = dutyMinutes !== null ? formatDuration(dutyMinutes) : "--:--";
 
+      const rateLines = [];
+      if (csmQalChecked) {
+        const csmVal = ((mbntMinutes / 60) * CSM_QAL_RATE).toFixed(2);
+        rateLines.push(`CSM QAL: $${csmVal}`);
+      }
+      if (faQalChecked) {
+        const faVal = ((mbntMinutes / 60) * FA_QAL_RATE).toFixed(2);
+        rateLines.push(`FA QAL: $${faVal}`);
+      }
+      if (csmQdChecked) {
+        const csmQdVal = ((mbntMinutes / 60) * CSM_QD_RATE).toFixed(2);
+        rateLines.push(`CSM QD: $${csmQdVal}`);
+      }
+      if (faQdChecked) {
+        const faQdVal = ((mbntMinutes / 60) * FA_QD_RATE).toFixed(2);
+        rateLines.push(`FA QD: $${faQdVal}`);
+      }
+      const rateNotes = rateLines.length > 0 ? `\n${rateLines.join("\n")}` : "";
+
       await Calendar.createEventAsync(defaultCal.id, {
-        title: `MBNT`,
+        title: `MBNT ${mbntStr}`,
         startDate,
         endDate,
-        notes: `Duty Duration: ${dutyStr}\nMBNT = ${mbntStr}\n\nAll times in homebase time zone.`,
+        notes: `Duty Duration: ${dutyStr}\nMBNT = ${mbntStr}${rateNotes}\n\nAll times in homebase time zone.`,
         alarms: [{ relativeOffset: -60 }],
       });
 
@@ -407,11 +573,23 @@ export default function DutyCalculator() {
       );
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Could not add event to calendar. Please try again.");
+      Alert.alert("Error", "Could not add event to calendar: " + String(err));
     } finally {
       setCalLoading(false);
     }
-  }, [startMinutes, endMinutes, mbntMinutes, dutyMinutes]);
+  }, [startMinutes, endMinutes, mbntMinutes, dutyMinutes, csmQalChecked, faQalChecked]);
+
+  if (!workGroupLoaded) {
+    return (
+      <View style={styles.root}>
+        <ActivityIndicator color={GOLD} size="large" />
+      </View>
+    );
+  }
+
+  if (workGroup === null) {
+    return <WorkGroupPicker onSelect={handleSelectWorkGroup} />;
+  }
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : insets.bottom;
@@ -445,6 +623,10 @@ export default function DutyCalculator() {
                 <Text style={styles.clearButtonText}>CLEAR</Text>
               </TouchableOpacity>
             ) : null}
+            <TouchableOpacity onPress={handleChangeWorkGroup} style={styles.clearButton}>
+              <Ionicons name="swap-horizontal" size={16} color={SECONDARY} />
+              <Text style={styles.clearButtonText}>GROUP</Text>
+            </TouchableOpacity>
           </View>
           <Text style={styles.appTitle}>MBNTMATE</Text>
           <Text style={styles.appSubtitle}>BY JETLOGIX</Text>
@@ -478,7 +660,7 @@ export default function DutyCalculator() {
 
         <View style={styles.cardSpacer} />
 
-        <ResultCard mbntMinutes={mbntMinutes} dutyMinutes={dutyMinutes} />
+        <ResultCard mbntMinutes={mbntMinutes} dutyMinutes={dutyMinutes} csmQalChecked={csmQalChecked} faQalChecked={faQalChecked} onToggleCsmQal={() => setCsmQalChecked((p) => !p)} onToggleFaQal={() => setFaQalChecked((p) => !p)} csmQdChecked={csmQdChecked} faQdChecked={faQdChecked} onToggleCsmQd={() => setCsmQdChecked((p) => !p)} onToggleFaQd={() => setFaQdChecked((p) => !p)} workGroup={workGroup} />
 
         {hasResult && (
           <>
@@ -822,6 +1004,14 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: CRIMSON,
     letterSpacing: 0.3,
+  },
+  rateDisclaimer: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(255,255,255,0.4)",
+    letterSpacing: 0.2,
+    marginTop: 10,
+    paddingLeft: 8,
   },
 
   calendarButton: {
